@@ -16,15 +16,16 @@ use ratatui::crossterm::{
 
 use std::sync::mpsc::{Sender, Receiver};
 use std::sync::mpsc;
-use std::thread;
+use std::{thread};
 
 pub mod min_max;
 
 mod data_processing;
 mod data_parsing;
 
-use data_parsing::parse_line;
-use data_parsing::DataPoint;
+use data_parsing::Parser;
+
+pub type DataPoint = (f64, f64);
 
 use crate::data_processing::Processing;
 
@@ -36,7 +37,10 @@ fn main() -> std::io::Result<()> {
     let mut writer = BufWriter::new(file);
 
     for i in 1u32..100_000_000 {
-        writeln!(writer, "{},{}", i, i.ilog10())?;
+        let x = i as f64;
+        let y = x.log10();
+
+        writeln!(writer, "{},{}", x, y)?;
     }
 
     Ok(())
@@ -51,7 +55,7 @@ fn main() -> color_eyre::Result<()> {
     Ok(())
 }
 
-fn read_data(tx: &Sender<DataPoint>) {
+fn read_data(parser: &Parser, tx: &Sender<DataPoint>) {
     let stdin = io::stdin();
 
     for line in stdin.lock().lines() {
@@ -61,7 +65,7 @@ fn read_data(tx: &Sender<DataPoint>) {
             println!("{}", &line);
         }
 
-        if let Ok(Some(data)) = parse_line(line){
+        if let Ok(Some(data)) = parser.parse_line(line){
             match tx.send(data) {
                 Ok(_) => (),
                 Err(_) => return,
@@ -73,9 +77,11 @@ fn read_data(tx: &Sender<DataPoint>) {
 fn app() -> std::io::Result<()> {
     let (tx, rx): (Sender<DataPoint>, Receiver<DataPoint>) = mpsc::channel();
 
+    let parser = Parser::default();
+
     thread::spawn(move || {
         loop {
-            read_data(&tx);
+            read_data(&parser, &tx);
         }
     });
 
