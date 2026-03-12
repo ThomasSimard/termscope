@@ -1,4 +1,5 @@
 use std::io::{self, BufRead, stderr, stdout, IsTerminal};
+use std::time::{Duration, Instant};
 
 use ratatui::{Frame};
 use ratatui::{prelude::*};
@@ -8,7 +9,9 @@ use ratatui::symbols::Marker;
 use ratatui::widgets::{Axis, Chart, Dataset, GraphType};
 use ratatui::crossterm::{
     execute,
-  terminal::{EnterAlternateScreen, LeaveAlternateScreen, Clear, ClearType},
+    cursor,
+    event::Event,
+  terminal::{enable_raw_mode, disable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen, Clear, ClearType},
 };
 
 use std::sync::mpsc::{Sender, Receiver};
@@ -21,6 +24,7 @@ mod data_processing;
 mod data_parsing;
 
 use data_parsing::parse_line;
+use data_parsing::DataPoint;
 
 use crate::data_processing::Processing;
 
@@ -42,12 +46,12 @@ fn main() -> color_eyre::Result<()> {
     color_eyre::install()?;
 
     execute!(stderr(), Clear(ClearType::All))?;
-    app();
+    app()?;
 
     Ok(())
 }
 
-fn read_data(tx: Sender<(f64, f64)>) {
+fn read_data(tx: &Sender<DataPoint>) {
     let stdin = io::stdin();
 
     for line in stdin.lock().lines() {
@@ -58,49 +62,62 @@ fn read_data(tx: Sender<(f64, f64)>) {
         }
 
         if let Ok(Some(data)) = parse_line(line){
-            //processing.process(data);
-            tx.send(data).expect("failed to send data via channel");
+            match tx.send(data) {
+                Ok(_) => (),
+                Err(_) => return,
+            }
         }
     }
 }
 
-fn app() {
-    let (tx, rx): (Sender<(f64, f64)>, Receiver<(f64, f64)>) = mpsc::channel();
+fn app() -> std::io::Result<()> {
+    let (tx, rx): (Sender<DataPoint>, Receiver<DataPoint>) = mpsc::channel();
 
     thread::spawn(move || {
         loop {
-            let tx = tx.clone();
-
-            read_data(tx);
+            read_data(&tx);
         }
     });
 
-    thread::spawn(move || -> std::io::Result<()> {
-        let mut stdout = stdout();
-        execute!(stdout, EnterAlternateScreen)?;
+    let mut stdout = stdout();
 
-        let mut terminal = Terminal::new(CrosstermBackend::new(stderr()))?;
+    enable_raw_mode()?;
+    execute!(stdout, EnterAlternateScreen)?;
 
-        let mut processing = Processing::default();
-        
-        loop {
-            let data = rx.recv().expect("failed to receive data via channel");
+    let mut terminal = Terminal::new(CrosstermBackend::new(stderr()))?;
 
+    let mut processing = Processing::default();
+
+    let mut last_draw = Instant::now();
+    let draw_interval = Duration::from_millis(16);
+
+    loop {
+        while let Ok(data) = rx.try_recv() {
             processing.process(data);
 
-            terminal.draw(|frame| {
-                render(frame, &processing)
-            })?;
-
-            if crossterm::event::read()?.is_key_press() {
+            if last_draw.elapsed() >= draw_interval {
                 break;
             }
         }
 
-        execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
+        terminal.draw(|frame| {
+            render(frame, &processing)
+        })?;
 
-        Ok(())
-    });
+
+        if crossterm::event::poll(Duration::from_millis(0))? 
+            && let Event::Key(_) = crossterm::event::read()? {
+            break;
+        }
+        
+
+        last_draw = Instant::now();
+    }
+
+    disable_raw_mode()?;
+    execute!(terminal.backend_mut(), LeaveAlternateScreen, cursor::Show, cursor::EnableBlinking)?;
+
+    Ok(())
 }
 
 fn render(frame: &mut Frame, processing: &Processing) {

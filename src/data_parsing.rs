@@ -1,16 +1,18 @@
-pub fn parse_line(line: String) -> Result<Option<(f64, f64)>, std::num::ParseFloatError> {
+pub type DataPoint = (f64, f64);
+
+pub fn parse_line(line: String) -> Result<Option<DataPoint>, std::num::ParseFloatError> {
     let mut split_line= line.split(",");
 
     let first_str = split_line.next();
     let second_str = split_line.next();
 
-    if let Some(first) = first_str {
-        if let Some(second) = second_str {
-            return Ok(Some(
+    if let Some(first) = first_str 
+        && let Some(second) = second_str {
+
+        return Ok(Some(
                 (first.parse::<f64>()?,
                 second.parse::<f64>()?)
-            ));
-        }
+        ));
     }
 
     Ok(None)
