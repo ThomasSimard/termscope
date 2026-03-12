@@ -1,9 +1,19 @@
-use std::io::{self, BufRead};
+use std::io::{self, BufRead, stderr, stdout, IsTerminal};
 
-use ratatui::{DefaultTerminal, Frame};
+use ratatui::{Frame};
+use ratatui::{prelude::*};
+
 use ratatui::style::{Color, Stylize};
 use ratatui::symbols::Marker;
 use ratatui::widgets::{Axis, Chart, Dataset, GraphType};
+use ratatui::crossterm::{
+    execute,
+  terminal::{EnterAlternateScreen, LeaveAlternateScreen, Clear, ClearType},
+};
+
+use std::sync::mpsc::{Sender, Receiver};
+use std::sync::mpsc;
+use std::thread;
 
 pub mod min_max;
 
@@ -31,30 +41,66 @@ fn main() -> std::io::Result<()> {
 fn main() -> color_eyre::Result<()> {
     color_eyre::install()?;
 
-    ratatui::run(app)?;
+    execute!(stderr(), Clear(ClearType::All))?;
+    app();
 
     Ok(())
 }
 
-fn app(terminal: &mut DefaultTerminal) -> std::io::Result<()> {
-    let mut processing = Processing::default();
+fn read_data(tx: Sender<(f64, f64)>) {
     let stdin = io::stdin();
 
-    loop {
-        for line in stdin.lock().lines() {
-            if let Ok(Some(data)) = parse_line(line?){
-                processing.process(data);
+    for line in stdin.lock().lines() {
+        let line: String = line.expect("failed to read line");
+
+        if !io::stdout().is_terminal() {
+            println!("{}", &line);
+        }
+
+        if let Ok(Some(data)) = parse_line(line){
+            //processing.process(data);
+            tx.send(data).expect("failed to send data via channel");
+        }
+    }
+}
+
+fn app() {
+    let (tx, rx): (Sender<(f64, f64)>, Receiver<(f64, f64)>) = mpsc::channel();
+
+    thread::spawn(move || {
+        loop {
+            let tx = tx.clone();
+
+            read_data(tx);
+        }
+    });
+
+    thread::spawn(move || -> std::io::Result<()> {
+        let mut stdout = stdout();
+        execute!(stdout, EnterAlternateScreen)?;
+
+        let mut terminal = Terminal::new(CrosstermBackend::new(stderr()))?;
+
+        let mut processing = Processing::default();
+        
+        loop {
+            let data = rx.recv().expect("failed to receive data via channel");
+
+            processing.process(data);
+
+            terminal.draw(|frame| {
+                render(frame, &processing)
+            })?;
+
+            if crossterm::event::read()?.is_key_press() {
+                break;
             }
         }
 
-        terminal.draw(|frame| {
-            render(frame, &processing)
-        })?;
-        
-        if crossterm::event::read()?.is_key_press() {
-            break Ok(());
-        }
-    }
+        execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
+
+        Ok(())
+    });
 }
 
 fn render(frame: &mut Frame, processing: &Processing) {
