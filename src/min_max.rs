@@ -1,5 +1,6 @@
 use core::f64;
 
+#[derive(Clone)]
 pub struct MinMax {
     minimum: f64,
     maximum: f64

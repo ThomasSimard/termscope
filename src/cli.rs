@@ -7,7 +7,7 @@ pub struct Cli {
     #[arg(long, default_value_t = 1)]
     pub x: usize,
 
-    /// Column of the Y axis
-    #[arg(long, default_value_t = 2)]
-    pub y: usize,
+    /// Columns of the Y axis
+    #[arg(long, num_args = 1.., value_delimiter = ' ')]
+    pub y: Vec<usize>,
 }

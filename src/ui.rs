@@ -4,38 +4,41 @@ use ratatui::symbols::Marker;
 use ratatui::widgets::{Axis, Chart, Dataset, GraphType};
 
 use crate::data_processing::Processing;
+use crate::min_max::MinMax;
 
-pub fn render(frame: &mut Frame, processing: &Processing) {
-    let chart_dataset = Dataset::default()
-        .name(format!("Dataset #1 ({})", processing.get_data().len()))
+fn generate_axis<'a>(min_max: &MinMax) -> Axis<'a> {
+    Axis::default()
+        .title("x axis".blue())
+        .bounds([
+            min_max.get_minimum(),
+            min_max.get_maximum()
+        ])
+        .labels([
+            min_max.get_minimum().to_string(),
+            min_max.get_maximum().to_string(),
+        ])
+}
+
+fn generate_chart_dataset<'a>(data: &'a Vec<(f64, f64)>) -> Dataset<'a> {
+    Dataset::default()
+        .name(format!("Dataset ({})", data.len()))
         .marker(Marker::Braille)
         .graph_type(GraphType::Line)
         .style(Color::Blue)
-        .data(processing.get_data());
+        .data(data)
+}
 
-    let x_axis = Axis::default()
-        .title("x axis".blue())
-        .bounds([
-            processing.domain.get_minimum(),
-            processing.domain.get_maximum()
-        ])
-        .labels([
-            processing.domain.get_minimum().to_string(),
-            processing.domain.get_maximum().to_string(),
-        ]);
+pub fn render(frame: &mut Frame, processing: &Processing) {
+    let x_axis = generate_axis(&processing.bounds[0]);
+    let y_axis = generate_axis(&processing.bounds[1]); 
 
-    let y_axis = Axis::default()
-        .title("y axis".blue())
-        .bounds([
-            processing.range.get_minimum(),
-            processing.range.get_maximum() 
-        ])
-        .labels([
-            processing.range.get_minimum().to_string(),
-            processing.range.get_maximum().to_string(),
-        ]);
+    let mut datasets = Vec::default();
 
-    let chart = Chart::new(vec![chart_dataset]).x_axis(x_axis).y_axis(y_axis);
+    for data in processing.get_data() {
+        datasets.push(generate_chart_dataset(data));
+    }
+
+    let chart = Chart::new(datasets).x_axis(x_axis).y_axis(y_axis);
 
     frame.render_widget(chart, frame.area());
 }

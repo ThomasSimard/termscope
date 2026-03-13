@@ -21,16 +21,20 @@ use crate::data_processing::Processing;
 use crate::input::read_data;
 use crate::ui::render;
 
-use crate::DataPoint;
-
 use crate::cli::Cli;
 
 pub fn app() -> std::io::Result<()> {
-    let cli = Cli::parse();
+    let mut cli = Cli::parse();
+
+    if cli.y.is_empty() {
+        cli.y = vec![2];
+    }
+
+    let mut processing = Processing::new(cli.y.len());
 
     execute!(stderr(), Clear(ClearType::All))?;
 
-    let (tx, rx): (Sender<DataPoint>, Receiver<DataPoint>) = mpsc::channel();
+    let (tx, rx): (Sender<Vec<f64>>, Receiver<Vec<f64>>) = mpsc::channel();
 
     let parser = DataParser::default();
 
@@ -47,14 +51,12 @@ pub fn app() -> std::io::Result<()> {
 
     let mut terminal = Terminal::new(CrosstermBackend::new(stderr()))?;
 
-    let mut processing = Processing::default();
-
     let mut last_draw = Instant::now();
     let draw_interval = Duration::from_millis(16);
 
     loop {
         while let Ok(data) = rx.try_recv() {
-            processing.process(data);
+            processing.process(&data);
 
             if last_draw.elapsed() >= draw_interval {
                 break;
@@ -65,12 +67,10 @@ pub fn app() -> std::io::Result<()> {
             render(frame, &processing)
         })?;
 
-
         if crossterm::event::poll(Duration::from_millis(0))? 
             && let Event::Key(_) = crossterm::event::read()? {
             break;
         }
-        
 
         last_draw = Instant::now();
     }

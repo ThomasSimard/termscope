@@ -1,5 +1,3 @@
-use crate::DataPoint;
-
 pub struct DataParser {
     delimiter: char
 }
@@ -11,20 +9,24 @@ impl Default for DataParser {
 }
 
 impl DataParser {
-    pub fn parse_line(&self, line: String, x_column: usize, y_column: usize) -> Result<Option<DataPoint>, std::num::ParseFloatError> {
+    pub fn parse_line(&self, line: String, x_column: usize, y_columns: &Vec<usize>) -> Result<Vec<f64>, std::num::ParseFloatError> {
+        let mut datapoints:  Vec<f64> = Vec::default();
+
         let x_str = line.split(self.delimiter).nth(x_column - 1);
-        let y_str = line.split(self.delimiter).nth(y_column - 1);
 
-        if let Some(first) = x_str 
-            && let Some(second) = y_str {
-
-                return Ok(Some(
-                        (first.parse::<f64>()?,
-                        second.parse::<f64>()?)
-                ));
+        if let Some(x) = x_str {
+            datapoints.push(x.parse::<f64>()?);
         }
 
-        Ok(None)
+        for y_column in y_columns {
+            let y_str = line.split(self.delimiter).nth(y_column - 1);
+
+            if let Some(y) = y_str {
+                datapoints.push(y.parse::<f64>()?);
+            }
+        }
+
+        Ok(datapoints)
     }
 }
 
@@ -37,8 +39,8 @@ mod tests {
         let parser = DataParser::default();
 
         assert_eq!(
-            parser.parse_line(String::from("2.0,3.2")),
-            Ok(Some((2.0, 3.2)))
+            parser.parse_line(String::from("2.0,3.2"), 1, &vec![2]),
+            Ok(vec![2.0, 3.2])
         );
     }
 
@@ -47,8 +49,8 @@ mod tests {
         let parser = DataParser::default();
 
         assert_eq!(
-            parser.parse_line(String::from(format!("{},{}", f64::MAX, f64::MAX))),
-            Ok(Some((f64::MAX, f64::MAX)))
+            parser.parse_line(String::from(format!("{},{}", f64::MAX, f64::MAX)), 1, &vec![2]),
+            Ok(vec![f64::MAX, f64::MAX])
         );
     }
 
@@ -57,8 +59,8 @@ mod tests {
         let parser = DataParser::default();
 
         assert_eq!(
-            parser.parse_line(String::from("2,3")),
-            Ok(Some((2.0, 3.0)))
+            parser.parse_line(String::from("2,3"), 1, &vec![2]),
+            Ok(vec![2.0, 3.0])
         );
     }
 
@@ -67,8 +69,8 @@ mod tests {
         let parser = DataParser::default();
 
         assert_eq!(
-            parser.parse_line(String::from("1.0,2.0,3.0,4.0")),
-            Ok(Some((1.0, 2.0)))
+            parser.parse_line(String::from("1.0,2.0,3.0,4.0"), 1, &vec![2]),
+            Ok(vec![1.0, 2.0])
         );
     }
 
@@ -76,7 +78,7 @@ mod tests {
     fn parse_error_if_empty() {
         let parser = DataParser::default();
 
-        let result = parser.parse_line(String::from("2.0,"));
+        let result = parser.parse_line(String::from("2.0,"), 1, &vec![2]);
 
         assert!(result.is_err());
     }
@@ -85,7 +87,7 @@ mod tests {
     fn parse_error_if_invalid() {
         let parser = DataParser::default();
 
-        let result = parser.parse_line(String::from("invalid,2.0"));
+        let result = parser.parse_line(String::from("invalid,2.0"), 1, &vec![2]);
 
         assert!(result.is_err());
     }
@@ -95,8 +97,8 @@ mod tests {
         let parser = DataParser::default();
 
         assert_eq!(
-            parser.parse_line(String::from("")),
-            Ok(None)
+            parser.parse_line(String::from(""), 1, &vec![2]),
+            Ok(Vec::default())
         );
     }
 }

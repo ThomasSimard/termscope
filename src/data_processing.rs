@@ -1,23 +1,44 @@
 use crate::DataPoint;
 use crate::min_max::MinMax;
 
-#[derive(Default)]
 pub struct Processing {
-    dataset: Vec<DataPoint>, 
+    datasets: Vec<Vec<(f64, f64)>>, 
 
-    pub domain: MinMax,   // x axis
-    pub range: MinMax,     // y axis
+    pub bounds: Vec<MinMax>,
 }
 
 impl Processing {
-    pub fn process(&mut self, data: DataPoint) { 
-        self.domain.update(data.0);
-        self.range.update(data.1);
+    pub fn new(number_of_charts: usize) -> Self {
+        let datasets = vec![Vec::default(); number_of_charts];
+        let bounds = vec![MinMax::default(); number_of_charts];
 
-        self.dataset.push(data);
+        Self {
+            datasets,
+            bounds,
+        }
     }
 
-    pub fn get_data(&self) -> &Vec<DataPoint> {
-       &self.dataset
+    pub fn process(&mut self, row_of_data: &Vec<f64>) { 
+        let mut data_iterator = row_of_data.iter();
+
+        for bound in &mut self.bounds {
+            if let Some(data) = data_iterator.next() {
+                bound.update(*data);
+            }
+        }
+
+        let mut data_iterator = row_of_data.iter();
+
+        if let Some(x) = data_iterator.next() {
+            for dataset in &mut self.datasets {
+                if let Some(y) = data_iterator.next() {
+                    dataset.push((*x, *y));
+                }
+            }
+        }
+    }
+
+    pub fn get_data(&self) -> &Vec<Vec<DataPoint>> {
+       &self.datasets
     }
 }
