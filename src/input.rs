@@ -2,9 +2,11 @@ use std::io::{self, BufRead, IsTerminal};
 use std::sync::mpsc::{Sender};
 
 use crate::DataPoint;
-use crate::data_parsing::Parser;
+use crate::data_parsing::DataParser;
 
-pub fn read_data(parser: &Parser, tx: &Sender<DataPoint>) {
+use crate::cli::Cli;
+
+pub fn read_data(parser: &DataParser, tx: &Sender<DataPoint>, cli: &Cli) {
     let stdin = io::stdin();
 
     for line in stdin.lock().lines() {
@@ -14,7 +16,7 @@ pub fn read_data(parser: &Parser, tx: &Sender<DataPoint>) {
             println!("{}", &line);
         }
 
-        if let Ok(Some(data)) = parser.parse_line(line){
+        if let Ok(Some(data)) = parser.parse_line(line, cli.x, cli.y){
             match tx.send(data) {
                 Ok(_) => (),
                 Err(_) => return,

@@ -9,11 +9,13 @@ use ratatui::crossterm::{
   terminal::{enable_raw_mode, disable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen, Clear, ClearType},
 };
 
+use clap::{Parser};
+
 use std::sync::mpsc::{Sender, Receiver};
 use std::sync::mpsc;
 use std::{thread};
 
-use crate::data_parsing::Parser;
+use crate::data_parsing::DataParser;
 use crate::data_processing::Processing;
 
 use crate::input::read_data;
@@ -21,16 +23,20 @@ use crate::ui::render;
 
 use crate::DataPoint;
 
+use crate::cli::Cli;
+
 pub fn app() -> std::io::Result<()> {
+    let cli = Cli::parse();
+
     execute!(stderr(), Clear(ClearType::All))?;
 
     let (tx, rx): (Sender<DataPoint>, Receiver<DataPoint>) = mpsc::channel();
 
-    let parser = Parser::default();
+    let parser = DataParser::default();
 
     thread::spawn(move || {
         loop {
-            read_data(&parser, &tx);
+            read_data(&parser, &tx, &cli);
         }
     });
 

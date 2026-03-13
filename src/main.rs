@@ -1,5 +1,6 @@
 pub mod min_max;
 
+mod cli;
 mod app;
 mod ui;
 mod input;
