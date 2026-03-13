@@ -19,7 +19,7 @@ fn generate_axis<'a>(min_max: &MinMax) -> Axis<'a> {
         ])
 }
 
-fn generate_chart_dataset<'a>(data: &'a Vec<(f64, f64)>) -> Dataset<'a> {
+fn generate_chart_dataset<'a>(data: &'a [(f64, f64)]) -> Dataset<'a> {
     Dataset::default()
         .name(format!("Dataset ({})", data.len()))
         .marker(Marker::Braille)
@@ -29,8 +29,8 @@ fn generate_chart_dataset<'a>(data: &'a Vec<(f64, f64)>) -> Dataset<'a> {
 }
 
 pub fn render(frame: &mut Frame, processing: &Processing) {
-    let x_axis = generate_axis(&processing.bounds[0]);
-    let y_axis = generate_axis(&processing.bounds[1]); 
+    let x_axis = generate_axis(&processing.domain);
+    let y_axis = generate_axis(&processing.range); 
 
     let mut datasets = Vec::default();
 

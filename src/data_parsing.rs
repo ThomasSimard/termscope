@@ -75,10 +75,19 @@ mod tests {
     }
 
     #[test]
-    fn parse_error_if_empty() {
+    fn parse_error_if_empty_colomn() {
         let parser = DataParser::default();
 
         let result = parser.parse_line(String::from("2.0,"), 1, &vec![2]);
+
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn parse_error_if_empty_line() {
+        let parser = DataParser::default();
+
+        let result = parser.parse_line(String::from(""), 1, &vec![2]);
 
         assert!(result.is_err());
     }
@@ -90,15 +99,5 @@ mod tests {
         let result = parser.parse_line(String::from("invalid,2.0"), 1, &vec![2]);
 
         assert!(result.is_err());
-    }
-
-    #[test]
-    fn invalid_if_empty() {
-        let parser = DataParser::default();
-
-        assert_eq!(
-            parser.parse_line(String::from(""), 1, &vec![2]),
-            Ok(Vec::default())
-        );
     }
 }

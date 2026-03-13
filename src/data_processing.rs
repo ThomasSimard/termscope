@@ -4,27 +4,30 @@ use crate::min_max::MinMax;
 pub struct Processing {
     datasets: Vec<Vec<(f64, f64)>>, 
 
-    pub bounds: Vec<MinMax>,
+    pub domain: MinMax,
+    pub range: MinMax,
 }
 
 impl Processing {
     pub fn new(number_of_charts: usize) -> Self {
         let datasets = vec![Vec::default(); number_of_charts];
-        let bounds = vec![MinMax::default(); number_of_charts];
 
         Self {
             datasets,
-            bounds,
+            domain: MinMax::default(), 
+            range: MinMax::default(), 
         }
     }
 
-    pub fn process(&mut self, row_of_data: &Vec<f64>) { 
+    pub fn process(&mut self, row_of_data: &[f64]) { 
         let mut data_iterator = row_of_data.iter();
 
-        for bound in &mut self.bounds {
-            if let Some(data) = data_iterator.next() {
-                bound.update(*data);
-            }
+        if let Some(data) = data_iterator.next() {
+            self.domain.update(*data);
+        }
+
+        for data in data_iterator {
+            self.range.update(*data);
         }
 
         let mut data_iterator = row_of_data.iter();
