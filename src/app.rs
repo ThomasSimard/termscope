@@ -36,7 +36,7 @@ pub fn app() -> std::io::Result<()> {
 
     let (tx, rx): (Sender<Vec<f64>>, Receiver<Vec<f64>>) = mpsc::channel();
 
-    let parser = DataParser::default();
+    let parser = DataParser::new(cli.delimiter);
 
     thread::spawn(move || {
         loop {

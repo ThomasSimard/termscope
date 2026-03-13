@@ -6,9 +6,9 @@ use ratatui::widgets::{Axis, Chart, Dataset, GraphType};
 use crate::data_processing::Processing;
 use crate::min_max::MinMax;
 
-fn generate_axis<'a>(min_max: &MinMax) -> Axis<'a> {
+fn generate_axis<'a>(min_max: &MinMax, title: String) -> Axis<'a> {
     Axis::default()
-        .title("x axis".blue())
+        .title(title.blue())
         .bounds([
             min_max.get_minimum(),
             min_max.get_maximum()
@@ -30,7 +30,7 @@ const COLORS: [Color; 6] = [
 
 fn generate_chart_dataset<'a>(data: &'a [(f64, f64)], index: usize) -> Dataset<'a> {
     Dataset::default()
-        .name(format!("Dataset #{} ({})", index, data.len()))
+        .name(format!("dataset #{} ({})", index+1, data.len()))
         .marker(Marker::Braille)
         .graph_type(GraphType::Line)
         .style(COLORS[index])
@@ -38,8 +38,8 @@ fn generate_chart_dataset<'a>(data: &'a [(f64, f64)], index: usize) -> Dataset<'
 }
 
 pub fn render(frame: &mut Frame, processing: &Processing) {
-    let x_axis = generate_axis(&processing.domain);
-    let y_axis = generate_axis(&processing.range); 
+    let x_axis = generate_axis(&processing.domain, String::from("x axis"));
+    let y_axis = generate_axis(&processing.range,String::from("y axis")); 
 
     let datasets: Vec<_> = processing
         .get_data()

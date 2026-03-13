@@ -9,6 +9,10 @@ impl Default for DataParser {
 }
 
 impl DataParser {
+    pub fn new(delimiter: char) -> Self {
+        Self { delimiter }
+    }
+
     pub fn parse_line(&self, line: String, x_column: usize, y_columns: &Vec<usize>) -> Result<Vec<f64>, std::num::ParseFloatError> {
         let mut datapoints:  Vec<f64> = Vec::default();
 

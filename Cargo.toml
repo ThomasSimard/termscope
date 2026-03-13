@@ -1,5 +1,5 @@
 [package]
-name = "Terminal-Imager"
+name = "termscope"
 version = "0.1.0"
 edition = "2024"
 

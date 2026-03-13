@@ -1,13 +1,25 @@
 use clap::{Parser};
 
 #[derive(Parser)]
-#[command(version, about, long_about = None)]
+#[command(
+    version,
+    about="Plot data directly in the terminal",
+    long_about = None,
+    after_help = "Examples:
+    cat data.csv | termscope
+    cat data.csv | termscope > save.csv
+    "
+)]
 pub struct Cli {
-    /// Column of the X axis
+    /// Column index used for the X axis
     #[arg(long, default_value_t = 1)]
     pub x: usize,
 
-    /// Columns of the Y axis
+    /// Column indexes use for the Y series
     #[arg(long, num_args = 1.., value_delimiter = ' ')]
     pub y: Vec<usize>,
+
+    /// Delimiter used to seperate columns
+    #[arg(short, long, default_value_t = ',')]
+    pub delimiter: char,
 }
