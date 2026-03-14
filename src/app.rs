@@ -39,9 +39,7 @@ pub fn app() -> std::io::Result<()> {
     let parser = DataParser::new(cli.delimiter);
 
     thread::spawn(move || {
-        loop {
-            read_data(&parser, &tx, &cli);
-        }
+        read_data(&parser, &tx, &cli);
     });
 
     let mut stdout = stdout();

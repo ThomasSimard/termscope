@@ -10,6 +10,8 @@ Download the latest release and place the binary somewhere in your $PATH or in t
 2,2
 ```
 
+```termscope data.csv``` or 
+
 ```cat data.csv | termscope```
 
 or if you want to try : 
@@ -18,7 +20,9 @@ or if you want to try :
 
 You can save the data at the same time :
 
-```cat data.csv | termscope > save.csv```
+```termscope data.csv > save.csv``` or
+
+```cat data.csv | tee save.csv | termscope```
 
 This is useful if you are viewing live data.
 
