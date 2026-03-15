@@ -19,7 +19,9 @@ use crate::data_parsing::DataParser;
 use crate::data_processing::Processing;
 
 use crate::input::read_data;
+
 use crate::ui::render;
+use crate::ui::message;
 
 use crate::cli::Cli;
 
@@ -48,13 +50,13 @@ pub fn app() -> std::io::Result<()> {
     let mut last_draw = Instant::now();
     let draw_interval = Duration::from_millis(16);
 
-    if let Ok(data) = rx.recv() {
-        processing.init(data.len() - 1);
-        processing.process(&data);
-    }
+    terminal.draw(|frame| {
+        message::render(frame, "Waiting for data...");
+    })?;
 
     loop {
         while let Ok(data) = rx.try_recv() {
+            processing.init(data.len() - 1);
             processing.process(&data);
 
             if last_draw.elapsed() >= draw_interval {
@@ -62,9 +64,11 @@ pub fn app() -> std::io::Result<()> {
             }
         }
 
-        terminal.draw(|frame| {
-            render(frame, &processing)
-        })?;
+        if !processing.get_data().is_empty() {
+            terminal.draw(|frame| {
+                render(frame, &processing)
+            })?;
+        }
 
         if crossterm::event::poll(Duration::from_millis(0))? 
             && let Event::Key(_) = crossterm::event::read()? {

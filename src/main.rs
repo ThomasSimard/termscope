@@ -2,13 +2,14 @@ pub mod min_max;
 
 mod cli;
 mod app;
-mod ui;
 mod input;
 
 mod data_processing;
 mod data_parsing;
 
 use app::app;
+
+pub mod ui;
 
 pub type DataPoint = (f64, f64);
 

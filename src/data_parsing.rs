@@ -15,9 +15,9 @@ impl DataParser {
     }
 
     fn default_y_columns(x_column: usize, number_of_colums: usize) -> Vec<usize> {
-        let mut all_columns: Vec<usize> = (0..=number_of_colums).collect();
+        let mut all_columns: Vec<usize> = (1..=number_of_colums).collect();
 
-        all_columns.remove(x_column);
+        all_columns.remove(x_column - 1);
         
         all_columns
     }
@@ -60,7 +60,7 @@ mod tests {
         let parser = DataParser::default();
 
         assert_eq!(
-            parser.parse_line(&String::from("2.0,3.2"), 1, &vec![2]),
+            parser.parse_line("2.0,3.2", 1, &vec![2]),
             Ok(vec![2.0, 3.2])
         );
     }
@@ -80,7 +80,7 @@ mod tests {
         let parser = DataParser::default();
 
         assert_eq!(
-            parser.parse_line(&String::from("2,3"), 1, &vec![2]),
+            parser.parse_line("2,3", 1, &vec![2]),
             Ok(vec![2.0, 3.0])
         );
     }
@@ -90,7 +90,7 @@ mod tests {
         let parser = DataParser::default();
 
         assert_eq!(
-            parser.parse_line(&String::from("1.0,2.0,3.0,4.0"), 1, &vec![2]),
+            parser.parse_line("1.0,2.0,3.0,4.0", 1, &vec![2]),
             Ok(vec![1.0, 2.0])
         );
     }
@@ -99,7 +99,7 @@ mod tests {
     fn parse_error_if_empty_colomn() {
         let parser = DataParser::default();
 
-        let result = parser.parse_line(&String::from("2.0,"), 1, &vec![2]);
+        let result = parser.parse_line("2.0,", 1, &vec![2]);
 
         assert!(result.is_err());
     }
@@ -108,7 +108,7 @@ mod tests {
     fn parse_error_if_empty_line() {
         let parser = DataParser::default();
 
-        let result = parser.parse_line(&String::from(""), 1, &vec![2]);
+        let result = parser.parse_line("", 1, &vec![2]);
 
         assert!(result.is_err());
     }
@@ -117,7 +117,7 @@ mod tests {
     fn parse_error_if_invalid() {
         let parser = DataParser::default();
 
-        let result = parser.parse_line(&String::from("invalid,2.0"), 1, &vec![2]);
+        let result = parser.parse_line("invalid,2.0", 1, &vec![2]);
 
         assert!(result.is_err());
     }
