@@ -1,36 +1,27 @@
-use std::io::{stderr, stdout};
 use std::time::{Duration, Instant};
 
-use ratatui::{prelude::*};
-use ratatui::crossterm::{
-    execute,
-    cursor,
-    event::Event,
-  terminal::{enable_raw_mode, disable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen, Clear, ClearType},
-};
+use clap::Parser;
 
-use clap::{Parser};
-
-use std::sync::mpsc::{Sender, Receiver};
 use std::sync::mpsc;
-use std::{thread};
+use std::sync::mpsc::{Receiver, Sender};
+use std::thread;
+
+use color_eyre::eyre::Result;
 
 use crate::data_parsing::DataParser;
 use crate::data_processing::Processing;
 
 use crate::input::read_data;
 
-use crate::ui::render;
-use crate::ui::message;
+use crate::ui::ratatui::Ratatui;
 
 use crate::cli::Cli;
+use crate::ui::ui::UI;
 
-pub fn app() -> std::io::Result<()> {
+pub fn app() -> Result<()> {
     let cli = Cli::parse();
 
     let mut processing = Processing::default();
-
-    execute!(stderr(), Clear(ClearType::All))?;
 
     let (tx, rx): (Sender<Vec<f64>>, Receiver<Vec<f64>>) = mpsc::channel();
 
@@ -40,19 +31,14 @@ pub fn app() -> std::io::Result<()> {
         read_data(&parser, &tx, &cli);
     });
 
-    let mut stdout = stdout();
-
-    enable_raw_mode()?;
-    execute!(stdout, EnterAlternateScreen)?;
-
-    let mut terminal = Terminal::new(CrosstermBackend::new(stderr()))?;
-
     let mut last_draw = Instant::now();
     let draw_interval = Duration::from_millis(16);
 
-    terminal.draw(|frame| {
-        message::render(frame, "Waiting for data...");
-    })?;
+    let mut ui = Ratatui::default();
+
+    ui.init()?;
+
+    ui.waiting_screen()?;
 
     loop {
         while let Ok(data) = rx.try_recv() {
@@ -65,22 +51,16 @@ pub fn app() -> std::io::Result<()> {
         }
 
         if !processing.get_data().is_empty() {
-            terminal.draw(|frame| {
-                render(frame, &processing)
-            })?;
+            ui.main_screen(&processing)?;
         }
 
-        if crossterm::event::poll(Duration::from_millis(0))? 
-            && let Event::Key(_) = crossterm::event::read()? {
+        if ui.handle_input() {
             break;
         }
 
         last_draw = Instant::now();
     }
 
-    disable_raw_mode()?;
-    execute!(terminal.backend_mut(), LeaveAlternateScreen, cursor::Show, cursor::EnableBlinking)?;
-
+    ui.cleanup()?;
     Ok(())
 }
-

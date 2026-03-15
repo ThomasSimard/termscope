@@ -3,12 +3,15 @@ use core::f64;
 #[derive(Clone)]
 pub struct MinMax {
     minimum: f64,
-    maximum: f64
+    maximum: f64,
 }
 
 impl Default for MinMax {
     fn default() -> Self {
-        Self { minimum: f64::INFINITY, maximum: f64::NEG_INFINITY}
+        Self {
+            minimum: f64::INFINITY,
+            maximum: f64::NEG_INFINITY,
+        }
     }
 }
 

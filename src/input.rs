@@ -1,7 +1,7 @@
-use std::io::{self, BufRead, BufReader, IsTerminal, Read};
 use std::fs::File;
+use std::io::{self, BufRead, BufReader, IsTerminal, Read};
 
-use std::sync::mpsc::{Sender};
+use std::sync::mpsc::Sender;
 
 use crate::data_parsing::DataParser;
 
@@ -25,13 +25,13 @@ pub fn read_data(parser: &DataParser, tx: &Sender<Vec<f64>>, cli: &Cli) {
         }
 
         if line.ends_with('\n') {
-            line.pop();          // remove '\n'
+            line.pop(); // remove '\n'
             if line.ends_with('\r') {
-                line.pop();      // handle Windows "\r\n"
+                line.pop(); // handle Windows "\r\n"
             }
         }
 
-        if let Ok(data) = parser.parse_line(&line, cli.x, &cli.y){
+        if let Ok(data) = parser.parse_line(&line, cli.x, &cli.y) {
             match tx.send(data) {
                 Ok(_) => (),
                 Err(_) => return,

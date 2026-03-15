@@ -1,6 +1,5 @@
-
 pub struct DataParser {
-    delimiter: char
+    delimiter: char,
 }
 
 impl Default for DataParser {
@@ -18,12 +17,17 @@ impl DataParser {
         let mut all_columns: Vec<usize> = (1..=number_of_colums).collect();
 
         all_columns.remove(x_column - 1);
-        
+
         all_columns
     }
 
-    pub fn parse_line(&self, line: &str, x_column: usize, y_columns: &[usize]) -> Result<Vec<f64>, std::num::ParseFloatError> {
-        let mut datapoints:  Vec<f64> = Vec::default();
+    pub fn parse_line(
+        &self,
+        line: &str,
+        x_column: usize,
+        y_columns: &[usize],
+    ) -> Result<Vec<f64>, std::num::ParseFloatError> {
+        let mut datapoints: Vec<f64> = Vec::default();
 
         let number_of_colums = line.split(self.delimiter).count();
 
@@ -70,7 +74,11 @@ mod tests {
         let parser = DataParser::default();
 
         assert_eq!(
-            parser.parse_line(&String::from(format!("{},{}", f64::MAX, f64::MAX)), 1, &vec![2]),
+            parser.parse_line(
+                &String::from(format!("{},{}", f64::MAX, f64::MAX)),
+                1,
+                &vec![2]
+            ),
             Ok(vec![f64::MAX, f64::MAX])
         );
     }
@@ -79,10 +87,7 @@ mod tests {
     fn valid_line_if_int() {
         let parser = DataParser::default();
 
-        assert_eq!(
-            parser.parse_line("2,3", 1, &vec![2]),
-            Ok(vec![2.0, 3.0])
-        );
+        assert_eq!(parser.parse_line("2,3", 1, &vec![2]), Ok(vec![2.0, 3.0]));
     }
 
     #[test]

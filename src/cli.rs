@@ -1,4 +1,4 @@
-use clap::{Parser};
+use clap::Parser;
 use std::path::PathBuf;
 
 #[derive(Parser)]
@@ -15,7 +15,7 @@ use std::path::PathBuf;
 pub struct Cli {
     #[arg()]
     pub file: Option<PathBuf>,
-    
+
     /// Column index used for the X axis
     #[arg(long, default_value_t = 1)]
     pub x: usize,
