@@ -1,7 +1,20 @@
 Tool to plot data directly in the terminal using pipes ```|```.
 
-## Install
+## Installation
+### Binary
 Download the latest release and place the binary somewhere in your $PATH or in the directory you want to use.
+### From source
+[Install Nix : the package manager](https://nixos.org/download/#nix-install-windows)
+
+```git clone``` this repository
+
+In the directory run the command :
+
+```nix develop```
+
+This will install everything necessary to compile the project. Now you can test that everything works by running : 
+
+```cargo build```
 
 ## Usage
 ```

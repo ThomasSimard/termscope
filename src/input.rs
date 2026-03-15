@@ -13,20 +13,31 @@ pub fn read_data(parser: &DataParser, tx: &Sender<Vec<f64>>, cli: &Cli) {
         None => Box::new(io::stdin()),
     };
 
-    let reader = BufReader::new(input);
+    let mut reader = BufReader::new(input);
 
-    for line in reader.lines() {
-        let line: String = line.expect("failed to read line");
+    let pipe_output = !io::stdout().is_terminal();
 
-        if !io::stdout().is_terminal() {
-            println!("{}", &line);
+    let mut line = String::new();
+
+    while reader.read_line(&mut line).expect("failed to read line") != 0 {
+        if pipe_output {
+            print!("{}", &line);
         }
 
-        if let Ok(data) = parser.parse_line(line, cli.x, &cli.y){
+        if line.ends_with('\n') {
+            line.pop();          // remove '\n'
+            if line.ends_with('\r') {
+                line.pop();      // handle Windows "\r\n"
+            }
+        }
+
+        if let Ok(data) = parser.parse_line(&line, cli.x, &cli.y){
             match tx.send(data) {
                 Ok(_) => (),
                 Err(_) => return,
             }
         }
+
+        line.clear();
     }
 }
