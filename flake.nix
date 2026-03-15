@@ -22,6 +22,7 @@
             rustc
             rustfmt
             cargo
+            cargo-dist
             clippy
             rust-analyzer
           ];
