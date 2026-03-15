@@ -22,7 +22,7 @@ impl DataParser {
         all_columns
     }
 
-    pub fn parse_line(&self, line: &String, x_column: usize, y_columns: &Vec<usize>) -> Result<Vec<f64>, std::num::ParseFloatError> {
+    pub fn parse_line(&self, line: &str, x_column: usize, y_columns: &[usize]) -> Result<Vec<f64>, std::num::ParseFloatError> {
         let mut datapoints:  Vec<f64> = Vec::default();
 
         let number_of_colums = line.split(self.delimiter).count();
@@ -33,7 +33,7 @@ impl DataParser {
             datapoints.push(x.parse::<f64>()?);
         }
 
-        let mut columns = y_columns.clone();
+        let mut columns = y_columns.to_owned();
 
         if y_columns.is_empty() {
             columns = DataParser::default_y_columns(x_column, number_of_colums);
