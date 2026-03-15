@@ -24,13 +24,9 @@ use crate::ui::render;
 use crate::cli::Cli;
 
 pub fn app() -> std::io::Result<()> {
-    let mut cli = Cli::parse();
+    let cli = Cli::parse();
 
-    if cli.y.is_empty() {
-        cli.y = vec![2];
-    }
-
-    let mut processing = Processing::new(cli.y.len());
+    let mut processing = Processing::default();
 
     execute!(stderr(), Clear(ClearType::All))?;
 
@@ -39,9 +35,7 @@ pub fn app() -> std::io::Result<()> {
     let parser = DataParser::new(cli.delimiter);
 
     thread::spawn(move || {
-        loop {
-            read_data(&parser, &tx, &cli);
-        }
+        read_data(&parser, &tx, &cli);
     });
 
     let mut stdout = stdout();
@@ -53,6 +47,11 @@ pub fn app() -> std::io::Result<()> {
 
     let mut last_draw = Instant::now();
     let draw_interval = Duration::from_millis(16);
+
+    if let Ok(data) = rx.recv() {
+        processing.init(data.len() - 1);
+        processing.process(&data);
+    }
 
     loop {
         while let Ok(data) = rx.try_recv() {

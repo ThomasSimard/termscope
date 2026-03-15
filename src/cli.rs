@@ -1,4 +1,5 @@
 use clap::{Parser};
+use std::path::PathBuf;
 
 #[derive(Parser)]
 #[command(
@@ -6,11 +7,15 @@ use clap::{Parser};
     about="Plot data directly in the terminal",
     long_about = None,
     after_help = "Examples:
+    termscope data.csv
     cat data.csv | termscope
     cat data.csv | termscope > save.csv
     "
 )]
 pub struct Cli {
+    #[arg()]
+    pub file: Option<PathBuf>,
+    
     /// Column index used for the X axis
     #[arg(long, default_value_t = 1)]
     pub x: usize,

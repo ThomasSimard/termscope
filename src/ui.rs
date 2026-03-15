@@ -32,7 +32,7 @@ fn generate_chart_dataset<'a>(data: &'a [(f64, f64)], index: usize) -> Dataset<'
     Dataset::default()
         .name(format!("dataset #{} ({})", index+1, data.len()))
         .marker(Marker::Braille)
-        .graph_type(GraphType::Line)
+        .graph_type(GraphType::Scatter)
         .style(COLORS[index])
         .data(data)
 }

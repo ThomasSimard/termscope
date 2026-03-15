@@ -1,6 +1,7 @@
 use crate::DataPoint;
 use crate::min_max::MinMax;
 
+#[derive(Default)]
 pub struct Processing {
     datasets: Vec<Vec<(f64, f64)>>, 
 
@@ -9,14 +10,8 @@ pub struct Processing {
 }
 
 impl Processing {
-    pub fn new(number_of_charts: usize) -> Self {
-        let datasets = vec![Vec::default(); number_of_charts];
-
-        Self {
-            datasets,
-            domain: MinMax::default(), 
-            range: MinMax::default(), 
-        }
+    pub fn init(&mut self, number_of_charts: usize) {
+        self.datasets = vec![Vec::default(); number_of_charts]; 
     }
 
     pub fn process(&mut self, row_of_data: &[f64]) { 
