@@ -16,7 +16,7 @@ use ratatui::prelude::*;
 use color_eyre::eyre::Result;
 
 use crate::data_processing::Processing;
-use crate::ui::ui::UI;
+use crate::ui::ui_backend::UIBackend;
 
 use crate::ui::message;
 use crate::ui::render;
@@ -35,7 +35,7 @@ impl Default for Ratatui {
     }
 }
 
-impl UI for Ratatui {
+impl UIBackend for Ratatui {
     fn init(&mut self) -> Result<()> {
         execute!(stderr(), Clear(ClearType::All))?;
 
@@ -48,7 +48,7 @@ impl UI for Ratatui {
     }
 
     fn main_screen(&mut self, processing: &Processing) -> Result<()> {
-        self.terminal.draw(|frame| render(frame, &processing))?;
+        self.terminal.draw(|frame| render(frame, processing))?;
 
         Ok(())
     }

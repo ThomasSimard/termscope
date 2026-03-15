@@ -16,7 +16,7 @@ use crate::input::read_data;
 use crate::ui::ratatui::Ratatui;
 
 use crate::cli::Cli;
-use crate::ui::ui::UI;
+use crate::ui::ui_backend::UIBackend;
 
 pub fn app() -> Result<()> {
     let cli = Cli::parse();

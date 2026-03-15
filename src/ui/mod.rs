@@ -1,4 +1,4 @@
-pub mod ui;
+pub mod ui_backend;
 
 pub mod chart;
 pub mod ratatui;

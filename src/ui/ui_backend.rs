@@ -2,7 +2,7 @@ use color_eyre::eyre::Result;
 
 use crate::data_processing::Processing;
 
-pub trait UI {
+pub trait UIBackend {
     fn init(&mut self) -> Result<()>;
 
     fn main_screen(&mut self, processing: &Processing) -> Result<()>;
